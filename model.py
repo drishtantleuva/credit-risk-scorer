@@ -79,8 +79,10 @@ def train_model(seed: int = 42) -> dict:
         "default_rate": float(y.mean()),
     }
     explainer = shap.TreeExplainer(model)
+    sample = X_test.sample(min(250, len(X_test)), random_state=seed)
+    global_explanation = explainer(sample.astype(float))
     return {"model": model, "explainer": explainer, "metrics": metrics,
-            "columns": list(X.columns)}
+            "columns": list(X.columns), "global_explanation": global_explanation}
 
 
 def score_application(art: dict, application: dict) -> dict:

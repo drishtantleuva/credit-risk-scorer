@@ -10,16 +10,23 @@ import plotly.graph_objects as go
 import shap
 import streamlit as st
 
-from data_prep import DECODE
+import branding
+from data_prep import DECODE, load_data
 from model import score_application, train_model
 
 st.set_page_config(page_title="Explainable Credit Risk Scorer",
                    page_icon="⚖️", layout="wide")
+branding.inject()
 
 
-@st.cache_resource(show_spinner="Training credit model on the German Credit dataset…")
+@st.cache_resource(show_spinner="Training the credit model on the German Credit dataset…")
 def load_artifacts():
     return train_model()
+
+
+@st.cache_data
+def load_decoded():
+    return load_data()
 
 
 ART = load_artifacts()
@@ -81,23 +88,6 @@ with st.sidebar:
                           help="Applications with predicted default probability "
                                "below this are approved.")
 
-    m = ART["metrics"]
-    st.divider()
-    st.subheader("Model card")
-    st.markdown(
-        f"""
-- **Model:** XGBoost · SHAP explanations
-- **Data:** [UCI German Credit](https://archive.ics.uci.edu/dataset/144/statlog+german+credit+data) (1,000 applications)
-- **ROC-AUC:** {m['roc_auc']:.3f} · **PR-AUC:** {m['avg_precision']:.3f}
-- **Fairness:** sex and nationality are **deliberately excluded** from the model
-- Decisions here are illustrative — not financial advice
-"""
-    )
-    st.markdown(
-        "Built by **[Drishtant Leuva](https://www.linkedin.com/in/drishtant-leuva/)** · "
-        "[source code](https://github.com/drishtantleuva/credit-risk-scorer)"
-    )
-
 application = dict(
     checking=checking, duration=duration, credit_history=credit_history,
     purpose=purpose, amount=amount, savings=savings, employment=employment,
@@ -108,79 +98,199 @@ application = dict(
 result = score_application(ART, application)
 pd_prob = result["pd"]
 approved = pd_prob < threshold
+m = ART["metrics"]
 
-# ---------------- main panel ----------------
+# ---------------- header ----------------
 
 st.title("Explainable Credit Risk Scorer")
 st.caption(
-    "Every decision comes with its reasons — SHAP-powered explanations on the "
-    "classic German Credit dataset. Adjust the application on the left and watch "
-    "the decision, and its explanation, update live."
+    "Every decision comes with its reasons — an interactive study in explainable "
+    "credit decisioning. Adjust the application in the sidebar and watch the "
+    "decision, and its explanation, update live."
 )
 
-left, right = st.columns([2, 3], gap="large")
+tab_score, tab_how, tab_data = st.tabs(
+    ["⚖️  Score an application", "🧠  How it works", "📊  The data"]
+)
 
-with left:
-    verdict = "✅ APPROVED" if approved else "❌ DECLINED"
-    color = "#21c98d" if approved else "#ff5c5c"
-    st.markdown(
-        f"<h2 style='color:{color};margin-bottom:0'>{verdict}</h2>",
-        unsafe_allow_html=True,
-    )
-    st.caption(f"Predicted default probability vs. threshold of {threshold:.0%}")
+# ================= TAB 1: scoring =================
 
-    gauge = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=pd_prob * 100,
-        number={"suffix": "%", "font": {"size": 44}},
-        title={"text": "Default risk"},
-        gauge={
-            "axis": {"range": [0, 100], "ticksuffix": "%"},
-            "bar": {"color": color},
-            "steps": [
-                {"range": [0, threshold * 100], "color": "rgba(33,201,141,0.15)"},
-                {"range": [threshold * 100, 100], "color": "rgba(255,92,92,0.12)"},
-            ],
-            "threshold": {
-                "line": {"color": "#888", "width": 3},
-                "value": threshold * 100,
+with tab_score:
+    left, right = st.columns([2, 3], gap="large")
+
+    with left:
+        verdict = "✅ APPROVED" if approved else "❌ DECLINED"
+        color = "#21c98d" if approved else "#ff5c5c"
+        st.markdown(
+            f"<h2 style='color:{color};margin-bottom:0'>{verdict}</h2>",
+            unsafe_allow_html=True,
+        )
+        st.caption(f"Predicted default probability vs. threshold of {threshold:.0%}")
+
+        gauge = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=pd_prob * 100,
+            number={"suffix": "%", "font": {"size": 44, "color": "#f2f2f5"}},
+            title={"text": "Default risk", "font": {"color": "#b9b9c2"}},
+            gauge={
+                "axis": {"range": [0, 100], "ticksuffix": "%",
+                         "tickcolor": "#666", "tickfont": {"color": "#999"}},
+                "bar": {"color": color},
+                "bgcolor": "rgba(255,255,255,0.04)",
+                "borderwidth": 0,
+                "steps": [
+                    {"range": [0, threshold * 100], "color": "rgba(33,201,141,0.12)"},
+                    {"range": [threshold * 100, 100], "color": "rgba(255,92,92,0.10)"},
+                ],
+                "threshold": {
+                    "line": {"color": "#888", "width": 3},
+                    "value": threshold * 100,
+                },
             },
-        },
-    ))
-    gauge.update_layout(height=300, margin=dict(l=30, r=30, t=60, b=10))
-    st.plotly_chart(gauge, use_container_width=True)
+        ))
+        gauge.update_layout(height=290, margin=dict(l=30, r=30, t=50, b=10),
+                            paper_bgcolor="rgba(0,0,0,0)")
+        st.plotly_chart(gauge, use_container_width=True)
 
-    if result["hurts"]:
-        st.markdown("**Working against this application:**")
-        for c in result["hurts"]:
-            st.markdown(f"- 🔻 {c['text']}")
-    if result["helps"]:
-        st.markdown("**Working in its favour:**")
-        for c in result["helps"]:
-            st.markdown(f"- 🟢 {c['text']}")
+        if result["hurts"]:
+            st.markdown("**Working against this application:**")
+            for c in result["hurts"]:
+                st.markdown(f"- 🔻 {c['text']}")
+        if result["helps"]:
+            st.markdown("**Working in its favour:**")
+            for c in result["helps"]:
+                st.markdown(f"- 🟢 {c['text']}")
 
-    if not approved and result["advice"]:
-        st.markdown("**What could change the outcome:**")
-        for a in result["advice"]:
-            st.markdown(f"- 💡 {a.capitalize()}")
+        if not approved and result["advice"]:
+            st.markdown("**What could change the outcome:**")
+            for a in result["advice"]:
+                st.markdown(f"- 💡 {a.capitalize()}")
 
-with right:
-    st.subheader("How the model weighed it — SHAP waterfall")
+    with right:
+        st.subheader("How the model weighed it")
+        st.caption(
+            "SHAP waterfall — each bar shows how one attribute pushed the risk "
+            "estimate up (red) or down (blue) from the average applicant."
+        )
+        fig, ax = plt.subplots()
+        shap.plots.waterfall(result["explanation"], max_display=12, show=False)
+        st.pyplot(branding.darken(plt.gcf()), use_container_width=True)
+        plt.close("all")
+
+# ================= TAB 2: how it works =================
+
+with tab_how:
+    st.subheader("From application to explained decision")
+    c1, c2, c3, c4 = st.columns(4, gap="medium")
+    with c1:
+        branding.step(1, "Encode the application",
+                      "13 attributes — 8 categorical, 5 numeric — are one-hot "
+                      "encoded with a fixed column order so training and live "
+                      "scoring always see identical features.")
+    with c2:
+        branding.step(2, "Score with XGBoost",
+                      "400 shallow trees (depth 3) estimate the probability of "
+                      "default. No class re-weighting, so the output stays "
+                      "calibrated to the dataset's 30% base default rate.")
+    with c3:
+        branding.step(3, "Explain with SHAP",
+                      "TreeExplainer computes exact Shapley values — how much "
+                      "each feature moved this decision from the average. "
+                      "Local accuracy is guaranteed: contributions sum to the score.")
+    with c4:
+        branding.step(4, "Translate to English",
+                      "One-hot contributions are aggregated back to their parent "
+                      "attribute and ranked, generating reasons for and against — "
+                      "and adverse-action guidance when declined.")
+
+    st.write("")
+    st.subheader("What drives decisions overall")
     st.caption(
-        "Each bar shows how one attribute pushed the risk estimate up (red) "
-        "or down (blue) from the average applicant."
+        "SHAP beeswarm across 250 held-out applicants. Each dot is one person; "
+        "position shows how strongly that feature pushed their risk up or down. "
+        "The famous German Credit result is plainly visible: checking-account "
+        "status dominates everything else."
     )
     fig, ax = plt.subplots()
-    shap.plots.waterfall(result["explanation"], max_display=12, show=False)
-    st.pyplot(plt.gcf(), use_container_width=True)
+    shap.plots.beeswarm(ART["global_explanation"], max_display=12, show=False)
+    st.pyplot(branding.darken(plt.gcf()), use_container_width=True)
     plt.close("all")
 
-st.divider()
-st.caption(
-    "Trained on the [Statlog German Credit dataset]"
-    "(https://archive.ics.uci.edu/dataset/144/statlog+german+credit+data) "
-    "(UCI Machine Learning Repository, 1,000 anonymised loan applications, 1990s "
-    "German bank; amounts in Deutsche Mark). Educational demonstration of "
-    "explainable credit decisioning — not a real lending system and not "
-    "financial advice."
-)
+    st.write("")
+    st.subheader("Design decisions — and their why")
+    with st.expander("Why XGBoost, and not logistic regression or a neural net?"):
+        st.markdown(
+            "Gradient-boosted trees are the workhorse of tabular credit modelling: "
+            "they capture non-linear effects and interactions (e.g. *high amount* "
+            "is riskier *for short employment tenure*) that logistic regression "
+            "misses, while remaining cheap to train and — crucially — exactly "
+            "explainable through tree SHAP. A neural net would add opacity and "
+            "infrastructure for no measurable lift on 1,000 rows."
+        )
+    with st.expander("Why are the probabilities not re-balanced?"):
+        st.markdown(
+            "It's common to up-weight the minority class, but that inflates "
+            "predicted probabilities and breaks their meaning. Here a displayed "
+            "**24% default risk means 24%** — calibrated against the dataset's "
+            "30% base rate. The trade-off between catching defaults and approving "
+            "good customers is exposed explicitly through the threshold slider "
+            "instead of being hidden inside the loss function."
+        )
+    with st.expander("Why SHAP rather than LIME or feature importance?"):
+        st.markdown(
+            "Global feature importance can't explain *one* decision, and LIME's "
+            "local surrogates are unstable across runs. Shapley values have the "
+            "properties a regulator would ask for: **local accuracy** (the "
+            "explanation sums exactly to the prediction) and **consistency** "
+            "(a feature that matters more never gets a smaller attribution). "
+            "For trees they can be computed exactly, not approximated."
+        )
+    with st.expander("Fairness: what was removed from the data, and what wasn't"):
+        st.markdown(
+            "The raw dataset includes `personal_status_sex` and `foreign_worker`. "
+            "Both are **excluded from the model** — protected characteristics have "
+            "no place in a credit decision. Honest caveat: exclusion alone doesn't "
+            "guarantee fairness, because remaining features can act as proxies. "
+            "A production system would add bias audits across protected groups "
+            "(demographic parity, equalised odds) on top of feature exclusion."
+        )
+    with st.expander("Known limitations"):
+        st.markdown(
+            "- 1,000 applications from a 1990s German bank — amounts in Deutsche "
+            "Mark, social patterns of its era. A teaching dataset, not a deployable "
+            "scorecard.\n"
+            "- Held-out ROC-AUC ≈ 0.80 — honest performance for this data; beware "
+            "any demo claiming 0.99 on German Credit.\n"
+            "- Counter-intuitive SHAP signals (e.g. *'no savings account'* mildly "
+            "lowering risk) are genuine quirks of the data worth interrogating, "
+            "not bugs to hide."
+        )
+
+# ================= TAB 3: the data =================
+
+with tab_data:
+    df = load_decoded()
+    st.subheader("Statlog German Credit Data")
+    st.markdown(
+        "1,000 anonymised loan applications from a German bank (1990s), published "
+        "by Prof. Hans Hofmann and hosted by the "
+        "[UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/144/statlog+german+credit+data). "
+        "It is *the* classic credit-risk research benchmark. 700 loans were repaid; "
+        "300 defaulted. The raw attribute codes (`A11`, `A34`, …) ship in "
+        "[`data/german.data`](https://github.com/drishtantleuva/credit-risk-scorer/blob/main/data/german.data) "
+        "and are decoded to the readable labels below."
+    )
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Applications", "1,000")
+    c2.metric("Repaid", "700")
+    c3.metric("Defaulted", "300")
+
+    st.dataframe(df.head(40), use_container_width=True, height=420)
+    st.caption(
+        "First 40 rows after decoding. The `default` column is the model target "
+        "(1 = the loan was not repaid). Sex and nationality columns are dropped "
+        "during preparation and never reach the model."
+    )
+
+branding.footer("credit-risk-scorer")
