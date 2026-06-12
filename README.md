@@ -1,8 +1,8 @@
-# ⚖️ Explainable Credit Risk Scorer
+# Explainable Credit Risk Scorer
 
 **Every credit decision comes with its reasons — SHAP-powered explanations on the classic German Credit dataset.**
 
-**▶ Live demo: https://drishtant-credit-risk.streamlit.app**
+**Live demo: https://drishtant-credit-risk.streamlit.app**
 
 Fill in a loan application and get an instant approve/decline decision — plus a SHAP waterfall showing exactly how each attribute moved the risk estimate, plain-English reasons for and against, and actionable guidance on what could change the outcome.
 

@@ -15,7 +15,7 @@ from data_prep import DECODE, load_data
 from model import score_application, train_model
 
 st.set_page_config(page_title="Explainable Credit Risk Scorer",
-                   page_icon="⚖️", layout="wide")
+                   page_icon=":material/balance:", layout="wide")
 branding.inject()
 
 
@@ -32,20 +32,20 @@ def load_decoded():
 ART = load_artifacts()
 
 PERSONAS = {
-    "— choose a preset —": None,
-    "🎓 Recent graduate, first loan": dict(
+    "Choose a preset": None,
+    "Recent graduate — first loan": dict(
         checking="low balance (0–200 DM)", duration=24, amount=4500,
         credit_history="no credits taken", purpose="education",
         savings="under 100 DM", employment="under 1 year", installment_rate=4,
         property="none", age=23, housing="renting", existing_credits=1,
         job="skilled employee"),
-    "🏠 Established homeowner, car loan": dict(
+    "Established homeowner — car loan": dict(
         checking="healthy balance (≥ 200 DM)", duration=18, amount=3200,
         credit_history="existing credits paid duly", purpose="used car",
         savings="500–1,000 DM", employment="≥ 7 years", installment_rate=2,
         property="real estate", age=44, housing="homeowner",
         existing_credits=1, job="management / self-employed"),
-    "⚠️ Overextended borrower": dict(
+    "Overextended borrower": dict(
         checking="overdrawn (below 0 DM)", duration=48, amount=9800,
         credit_history="past payment delays", purpose="business",
         savings="none / unknown", employment="1–4 years", installment_rate=4,
@@ -56,9 +56,9 @@ PERSONAS = {
 # ---------------- sidebar: the application form ----------------
 
 with st.sidebar:
-    st.title("⚖️ Loan application")
+    st.title("Loan application")
 
-    persona = st.selectbox("Try a preset applicant", list(PERSONAS))
+    persona = st.selectbox("Preset applicants", list(PERSONAS))
     p = PERSONAS[persona] or {}
 
     def sel(label, key, default_idx=0):
@@ -102,15 +102,16 @@ m = ART["metrics"]
 
 # ---------------- header ----------------
 
+branding.eyebrow("Explainable ML · Credit Risk · Responsible AI")
 st.title("Explainable Credit Risk Scorer")
 st.caption(
     "Every decision comes with its reasons — an interactive study in explainable "
-    "credit decisioning. Adjust the application in the sidebar and watch the "
-    "decision, and its explanation, update live."
+    "credit decisioning. Adjust the application in the sidebar; the decision and "
+    "its explanation update live."
 )
 
 tab_score, tab_how, tab_data = st.tabs(
-    ["⚖️  Score an application", "🧠  How it works", "📊  The data"]
+    ["Score an application", "How it works", "The data"]
 )
 
 # ================= TAB 1: scoring =================
@@ -119,22 +120,18 @@ with tab_score:
     left, right = st.columns([2, 3], gap="large")
 
     with left:
-        verdict = "✅ APPROVED" if approved else "❌ DECLINED"
-        color = "#21c98d" if approved else "#ff5c5c"
-        st.markdown(
-            f"<h2 style='color:{color};margin-bottom:0'>{verdict}</h2>",
-            unsafe_allow_html=True,
-        )
+        branding.verdict_pill(approved)
         st.caption(f"Predicted default probability vs. threshold of {threshold:.0%}")
 
+        color = "#21c98d" if approved else "#ff5c5c"
         gauge = go.Figure(go.Indicator(
             mode="gauge+number",
             value=pd_prob * 100,
             number={"suffix": "%", "font": {"size": 44, "color": "#f2f2f5"}},
-            title={"text": "Default risk", "font": {"color": "#b9b9c2"}},
+            title={"text": "Default risk", "font": {"color": "#b9b9c2", "size": 15}},
             gauge={
                 "axis": {"range": [0, 100], "ticksuffix": "%",
-                         "tickcolor": "#666", "tickfont": {"color": "#999"}},
+                         "tickcolor": "#8a8a92", "tickfont": {"color": "#b9b9c2"}},
                 "bar": {"color": color},
                 "bgcolor": "rgba(255,255,255,0.04)",
                 "borderwidth": 0,
@@ -143,28 +140,29 @@ with tab_score:
                     {"range": [threshold * 100, 100], "color": "rgba(255,92,92,0.10)"},
                 ],
                 "threshold": {
-                    "line": {"color": "#888", "width": 3},
+                    "line": {"color": "#b9b9c2", "width": 3},
                     "value": threshold * 100,
                 },
             },
         ))
         gauge.update_layout(height=290, margin=dict(l=30, r=30, t=50, b=10),
-                            paper_bgcolor="rgba(0,0,0,0)")
+                            paper_bgcolor="rgba(0,0,0,0)",
+                            font={"color": "#e8e8ec"})
         st.plotly_chart(gauge, use_container_width=True)
 
         if result["hurts"]:
-            st.markdown("**Working against this application:**")
+            st.markdown("**Working against this application**")
             for c in result["hurts"]:
-                st.markdown(f"- 🔻 {c['text']}")
+                branding.reason(c["text"], "neg")
         if result["helps"]:
-            st.markdown("**Working in its favour:**")
+            st.markdown("**Working in its favour**")
             for c in result["helps"]:
-                st.markdown(f"- 🟢 {c['text']}")
+                branding.reason(c["text"], "pos")
 
         if not approved and result["advice"]:
-            st.markdown("**What could change the outcome:**")
+            st.markdown("**What could change the outcome**")
             for a in result["advice"]:
-                st.markdown(f"- 💡 {a.capitalize()}")
+                branding.reason(a.capitalize(), "tip")
 
     with right:
         st.subheader("How the model weighed it")
@@ -208,7 +206,7 @@ with tab_how:
     st.caption(
         "SHAP beeswarm across 250 held-out applicants. Each dot is one person; "
         "position shows how strongly that feature pushed their risk up or down. "
-        "The famous German Credit result is plainly visible: checking-account "
+        "The well-known German Credit result is plainly visible: checking-account "
         "status dominates everything else."
     )
     fig, ax = plt.subplots()
@@ -217,7 +215,7 @@ with tab_how:
     plt.close("all")
 
     st.write("")
-    st.subheader("Design decisions — and their why")
+    st.subheader("Design decisions, and their why")
     with st.expander("Why XGBoost, and not logistic regression or a neural net?"):
         st.markdown(
             "Gradient-boosted trees are the workhorse of tabular credit modelling: "
@@ -265,6 +263,20 @@ with tab_how:
             "lowering risk) are genuine quirks of the data worth interrogating, "
             "not bugs to hide."
         )
+
+    st.write("")
+    st.subheader("Mapped to a hiring manager's checklist")
+    st.markdown(
+        """
+| If your job description says… | This project demonstrates it by… |
+|---|---|
+| Build and validate credit / PD models | XGBoost probability-of-default model with stratified hold-out, calibrated outputs, ROC-AUC and PR-AUC reported without inflation |
+| Explainable AI and model governance | Exact per-decision SHAP attributions, global drivers, model card, and documented design rationale — the audit trail a regulator expects |
+| Responsible AI and fairness | Protected attributes excluded by design, proxy risk acknowledged, bias-audit roadmap stated |
+| Translate models for non-technical stakeholders | Adverse-action reasons and improvement guidance generated in plain English from raw Shapley values |
+| Production engineering discipline | Deterministic feature encoding shared between training and inference, reproducible pipeline, version-controlled and publicly deployed |
+"""
+    )
 
 # ================= TAB 3: the data =================
 
