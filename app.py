@@ -265,17 +265,16 @@ with tab_how:
         )
 
     st.write("")
-    st.subheader("Mapped to a hiring manager's checklist")
+    st.subheader("Read the code")
     st.markdown(
-        """
-| If your job description says… | This project demonstrates it by… |
-|---|---|
-| Build and validate credit / PD models | XGBoost probability-of-default model with stratified hold-out, calibrated outputs, ROC-AUC and PR-AUC reported without inflation |
-| Explainable AI and model governance | Exact per-decision SHAP attributions, global drivers, model card, and documented design rationale — the audit trail a regulator expects |
-| Responsible AI and fairness | Protected attributes excluded by design, proxy risk acknowledged, bias-audit roadmap stated |
-| Translate models for non-technical stakeholders | Adverse-action reasons and improvement guidance generated in plain English from raw Shapley values |
-| Production engineering discipline | Deterministic feature encoding shared between training and inference, reproducible pipeline, version-controlled and publicly deployed |
-"""
+        "The whole system is about 520 lines — small enough to review in one "
+        "sitting, and structured the way production code is: data preparation, "
+        "modelling and presentation kept strictly apart.\n\n"
+        "| Module | Responsibility | |\n"
+        "|---|---|---|\n"
+        "| [`data_prep.py`](https://github.com/drishtantleuva/credit-risk-scorer/blob/main/data_prep.py) | Decodes the UCI attribute codes, drops protected attributes, one-hot encodes with a column order shared by training and inference | 90 lines |\n"
+        "| [`model.py`](https://github.com/drishtantleuva/credit-risk-scorer/blob/main/model.py) | Trains the classifier, computes SHAP attributions, aggregates one-hot contributions back to human terms and renders them as reasons and advice | 125 lines |\n"
+        "| [`app.py`](https://github.com/drishtantleuva/credit-risk-scorer/blob/main/app.py) | Everything you are looking at | 308 lines |\n"
     )
 
 # ================= TAB 3: the data =================
