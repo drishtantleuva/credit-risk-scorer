@@ -267,14 +267,13 @@ with tab_how:
     st.write("")
     st.subheader("Read the code")
     st.markdown(
-        "The whole system is about 520 lines — small enough to review in one "
-        "sitting, and structured the way production code is: data preparation, "
-        "modelling and presentation kept strictly apart.\n\n"
-        "| Module | Responsibility | |\n"
-        "|---|---|---|\n"
-        "| [`data_prep.py`](https://github.com/drishtantleuva/credit-risk-scorer/blob/main/data_prep.py) | Decodes the UCI attribute codes, drops protected attributes, one-hot encodes with a column order shared by training and inference | 90 lines |\n"
-        "| [`model.py`](https://github.com/drishtantleuva/credit-risk-scorer/blob/main/model.py) | Trains the classifier, computes SHAP attributions, aggregates one-hot contributions back to human terms and renders them as reasons and advice | 125 lines |\n"
-        "| [`app.py`](https://github.com/drishtantleuva/credit-risk-scorer/blob/main/app.py) | Everything you are looking at | 308 lines |\n"
+        "Small, deliberately separated codebase — data preparation, modelling "
+        "and presentation never mix. Each module is a short read.\n\n"
+        "| Module | Responsibility |\n"
+        "|---|---|\n"
+        "| [`data_prep.py`](https://github.com/drishtantleuva/credit-risk-scorer/blob/main/data_prep.py) | Decodes the UCI attribute codes, drops protected attributes, one-hot encodes with a column order shared by training and inference |\n"
+        "| [`model.py`](https://github.com/drishtantleuva/credit-risk-scorer/blob/main/model.py) | Trains the classifier, computes SHAP attributions, aggregates one-hot contributions back to human terms and renders them as reasons and advice |\n"
+        "| [`app.py`](https://github.com/drishtantleuva/credit-risk-scorer/blob/main/app.py) | Everything you are looking at |\n"
     )
 
 # ================= TAB 3: the data =================
