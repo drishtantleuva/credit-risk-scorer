@@ -1,115 +1,124 @@
-"""Shared look-and-feel: typography, card styling, dark chart helpers."""
+"""Visual identity for the Credit Risk Scorer.
 
-import matplotlib.colors as mcolors
-import matplotlib.pyplot as plt
+Design language: light institutional fintech. Warm ivory paper, deep navy ink,
+a Spectral serif for headings paired with Inter for body — restrained, the way
+a lending product or a bank's risk tool would look. The only saturated colour
+is the approve/decline decision itself.
+"""
+
 import streamlit as st
 
-ACCENT1 = "#7b5cff"
-ACCENT2 = "#2fc8f5"
-PANEL = "#15151a"
-INK = "#e8e8ec"
+INK = "#14223d"
+NAVY = "#1c3a5e"
+MUTED = "#5c6678"
+PAPER = "#f9f7f2"
+APPROVE = "#1f7a52"
+DECLINE = "#b4232a"
+LINE = "#ddd7c8"
 
 CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
 
-html, body, [class*="st-"], [data-testid="stMarkdownContainer"] {
+html, body, [class*="st-"], [data-testid="stMarkdownContainer"], input, button, select {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
+[data-testid="stAppViewContainer"] { background: #f9f7f2; }
 
-/* Streamlit renders icons as Material Symbols ligatures; the font override
-   above must never reach them or the icon name shows as literal text. */
-[data-testid="stIconMaterial"], [data-testid="stExpanderToggleIcon"] {
-  font-family: 'Material Symbols Rounded' !important;
+h1, h2, h3 {
+  font-family: 'Spectral', Georgia, serif !important;
+  color: #14223d !important;
+  letter-spacing: -0.01em;
 }
+h1 { font-weight: 700 !important; font-size: 2.5rem !important; line-height: 1.1; }
+h2 { font-weight: 600 !important; }
+h3 { font-weight: 600 !important; }
 
-h1 {
-  font-weight: 800 !important;
-  letter-spacing: -0.02em;
-  background: linear-gradient(92deg, #f2f2f5 30%, #7b5cff 75%, #2fc8f5);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-h2, h3 { font-weight: 700 !important; letter-spacing: -0.01em; }
-
+/* metric cards — white, hairline border, soft lift */
 [data-testid="stMetric"] {
-  background: #15151a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 14px 18px;
+  background: #ffffff;
+  border: 1px solid #e7e3d8;
+  border-radius: 10px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 2px rgba(20,34,61,0.05);
 }
+[data-testid="stMetricLabel"] { color: #5c6678 !important; }
+[data-testid="stMetricValue"] { color: #14223d !important; font-weight: 600; }
 
 [data-testid="stSidebar"] {
-  background: #101014;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  background: #f3f0e8;
+  border-right: 1px solid #e1dccf;
 }
 
 .stButton button {
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  border: 1px solid #c9c2b1;
+  background: #ffffff;
+  color: #1c3a5e;
+  font-weight: 500;
 }
-.stButton button:hover { border-color: #7b5cff; color: #fff; }
+.stButton button:hover { border-color: #1c3a5e; background: #f3f0e8; }
 
-[data-testid="stTabs"] button[role="tab"] { font-weight: 600; font-size: 0.95rem; }
+[data-testid="stTabs"] button[role="tab"] {
+  font-weight: 600;
+  color: #5c6678;
+}
+[data-testid="stTabs"] button[role="tab"][aria-selected="true"] { color: #1c3a5e; }
+[data-testid="stIconMaterial"] { font-family: 'Material Symbols Rounded' !important; }
 
 div[data-testid="stExpander"] {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  background: #121217;
+  border: 1px solid #e7e3d8;
+  border-radius: 8px;
+  background: #ffffff;
 }
 
-.dl-footer {
-  margin-top: 8px;
-  color: #8a8a92;
-  font-size: 0.85rem;
+/* an eyebrow / kicker above the masthead */
+.eyebrow {
+  text-transform: uppercase; letter-spacing: 0.18em;
+  font-size: 0.72rem; color: #1c3a5e; font-weight: 600;
+  margin-bottom: 2px;
 }
-.dl-footer a { color: #2fc8f5; text-decoration: none; }
+/* a thin rule under the masthead, the way print sets a headline */
+.masthead-rule { height: 2px; background: #1c3a5e; width: 64px; margin: 6px 0 4px; }
 
 .dl-step {
-  background: #15151a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e7e3d8;
+  border-radius: 10px;
   padding: 18px;
   height: 100%;
 }
-.dl-step b { color: #2fc8f5; }
+.dl-step b { color: #1c3a5e; font-family: 'Spectral', serif; font-size: 1.02rem; }
 .dl-step .n {
-  display: inline-block; width: 26px; height: 26px; line-height: 26px;
+  display: inline-block; width: 28px; height: 28px; line-height: 28px;
   text-align: center; border-radius: 50%;
-  background: linear-gradient(92deg, #7b5cff, #2fc8f5);
-  color: white; font-weight: 700; margin-bottom: 8px; font-size: 0.85rem;
+  border: 1.5px solid #1c3a5e; color: #1c3a5e;
+  font-weight: 600; margin-bottom: 10px; font-size: 0.85rem;
+  font-family: 'Spectral', serif;
 }
 
 .reason {
-  padding: 9px 14px; margin: 7px 0;
-  border-left: 3px solid; border-radius: 0 10px 10px 0;
-  background: rgba(255, 255, 255, 0.03);
-  font-size: 0.95rem; color: #dcdce2;
+  padding: 10px 16px; margin: 7px 0;
+  border-left: 3px solid; border-radius: 0 8px 8px 0;
+  background: #ffffff; border-top: 1px solid #efe9dc;
+  border-right: 1px solid #efe9dc; border-bottom: 1px solid #efe9dc;
+  font-size: 0.95rem; color: #2b3447;
 }
-.reason.neg { border-color: #ff5c5c; }
-.reason.pos { border-color: #21c98d; }
-.reason.tip { border-color: #2fc8f5; }
+.reason.neg { border-left-color: #b4232a; }
+.reason.pos { border-left-color: #1f7a52; }
+.reason.tip { border-left-color: #1c3a5e; }
 
+/* decision — a stamped verdict, not a glowing pill */
 .pill {
-  display: inline-block; padding: 8px 24px; border-radius: 999px;
-  font-weight: 800; letter-spacing: 0.05em; font-size: 1.2rem;
+  display: inline-block; padding: 6px 18px; border-radius: 4px;
+  font-family: 'Spectral', serif; font-weight: 700;
+  letter-spacing: 0.08em; font-size: 1.1rem; text-transform: uppercase;
 }
-.pill.ok {
-  background: rgba(33, 201, 141, 0.14); color: #21c98d;
-  border: 1px solid rgba(33, 201, 141, 0.4);
-}
-.pill.no {
-  background: rgba(255, 92, 92, 0.12); color: #ff5c5c;
-  border: 1px solid rgba(255, 92, 92, 0.4);
-}
-
-.eyebrow {
-  text-transform: uppercase; letter-spacing: 0.22em;
-  font-size: 0.72rem; color: #8a8a92; margin-bottom: -4px;
-}
+.pill.ok { background: #e7f1ea; color: #1f7a52; border: 1px solid #1f7a52; }
+.pill.no { background: #f6e7e7; color: #b4232a; border: 1px solid #b4232a; }
 
 table { font-size: 0.92rem; }
+a { color: #1c3a5e; }
 </style>
 """
 
@@ -119,7 +128,10 @@ def inject():
 
 
 def eyebrow(text: str):
-    st.markdown(f'<p class="eyebrow">{text}</p>', unsafe_allow_html=True)
+    st.markdown(
+        f'<p class="eyebrow">{text}</p><div class="masthead-rule"></div>',
+        unsafe_allow_html=True,
+    )
 
 
 def verdict_pill(approved: bool, label_ok: str = "Approved",
@@ -129,40 +141,29 @@ def verdict_pill(approved: bool, label_ok: str = "Approved",
 
 
 def reason(text: str, kind: str):
-    """kind: 'neg' (against), 'pos' (in favour), 'tip' (guidance)."""
     st.markdown(f'<div class="reason {kind}">{text}</div>', unsafe_allow_html=True)
 
 
-def darken(fig):
-    """Restyle a matplotlib figure (e.g. SHAP plots) for the dark theme.
+def style_fig(fig):
+    """Restyle a matplotlib/SHAP figure for the light paper theme."""
+    import matplotlib.pyplot as plt
 
-    Any text darker than mid-grey is lifted to the ink colour so axis labels,
-    tick labels and SHAP annotations stay readable on the dark panel.
-    """
-    fig.patch.set_facecolor(PANEL)
+    fig.patch.set_facecolor(PAPER)
     for ax in fig.axes:
-        ax.set_facecolor(PANEL)
+        ax.set_facecolor(PAPER)
         ax.tick_params(colors=INK, labelcolor=INK)
         for spine in ax.spines.values():
-            spine.set_color("#3a3a42")
+            spine.set_color("#cfc8b8")
         ax.xaxis.label.set_color(INK)
         ax.yaxis.label.set_color(INK)
         ax.title.set_color(INK)
-    for text in fig.findobj(plt.Text):
-        try:
-            r, g, b = mcolors.to_rgb(text.get_color())
-            luminance = 0.299 * r + 0.587 * g + 0.114 * b
-            if luminance < 0.82:
-                text.set_color(INK)
-        except (ValueError, TypeError):
-            pass
     return fig
 
 
 def step(n, title, body):
     st.markdown(
         f'<div class="dl-step"><span class="n">{n}</span><br/>'
-        f'<b>{title}</b><br/><span style="color:#b9b9c2;font-size:0.92rem">{body}</span></div>',
+        f'<b>{title}</b><br/><span style="color:#5c6678;font-size:0.92rem">{body}</span></div>',
         unsafe_allow_html=True,
     )
 
@@ -170,9 +171,9 @@ def step(n, title, body):
 def footer(repo: str):
     st.divider()
     st.markdown(
-        f'<p class="dl-footer">Built by <a href="https://drishtantleuva.github.io" '
-        f'target="_blank"><b>Drishtant Leuva</b></a> — Data Scientist · Risk &amp; '
-        f'Explainable AI &nbsp;·&nbsp; '
+        f'<p style="color:#7a8090;font-size:0.85rem">Built by '
+        f'<a href="https://drishtantleuva.github.io" target="_blank"><b>Drishtant Leuva</b></a> '
+        f'— Data Scientist · Risk &amp; Explainable AI &nbsp;·&nbsp; '
         f'<a href="https://github.com/drishtantleuva/{repo}" target="_blank">Source on GitHub</a> '
         f'&nbsp;·&nbsp; <a href="https://www.linkedin.com/in/drishtant-leuva/" '
         f'target="_blank">LinkedIn</a></p>',

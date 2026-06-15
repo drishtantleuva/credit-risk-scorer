@@ -123,31 +123,31 @@ with tab_score:
         branding.verdict_pill(approved)
         st.caption(f"Predicted default probability vs. threshold of {threshold:.0%}")
 
-        color = "#21c98d" if approved else "#ff5c5c"
+        color = branding.APPROVE if approved else branding.DECLINE
         gauge = go.Figure(go.Indicator(
             mode="gauge+number",
             value=pd_prob * 100,
-            number={"suffix": "%", "font": {"size": 44, "color": "#f2f2f5"}},
-            title={"text": "Default risk", "font": {"color": "#b9b9c2", "size": 15}},
+            number={"suffix": "%", "font": {"size": 44, "color": branding.INK}},
+            title={"text": "Default risk", "font": {"color": branding.MUTED, "size": 15}},
             gauge={
                 "axis": {"range": [0, 100], "ticksuffix": "%",
-                         "tickcolor": "#8a8a92", "tickfont": {"color": "#b9b9c2"}},
+                         "tickcolor": "#b3ad9d", "tickfont": {"color": branding.MUTED}},
                 "bar": {"color": color},
-                "bgcolor": "rgba(255,255,255,0.04)",
+                "bgcolor": "rgba(28,58,94,0.04)",
                 "borderwidth": 0,
                 "steps": [
-                    {"range": [0, threshold * 100], "color": "rgba(33,201,141,0.12)"},
-                    {"range": [threshold * 100, 100], "color": "rgba(255,92,92,0.10)"},
+                    {"range": [0, threshold * 100], "color": "rgba(31,122,82,0.12)"},
+                    {"range": [threshold * 100, 100], "color": "rgba(180,35,42,0.10)"},
                 ],
                 "threshold": {
-                    "line": {"color": "#b9b9c2", "width": 3},
+                    "line": {"color": branding.NAVY, "width": 3},
                     "value": threshold * 100,
                 },
             },
         ))
         gauge.update_layout(height=290, margin=dict(l=30, r=30, t=50, b=10),
                             paper_bgcolor="rgba(0,0,0,0)",
-                            font={"color": "#e8e8ec"})
+                            font={"color": branding.INK})
         st.plotly_chart(gauge, use_container_width=True)
 
         if result["hurts"]:
@@ -172,7 +172,7 @@ with tab_score:
         )
         fig, ax = plt.subplots()
         shap.plots.waterfall(result["explanation"], max_display=12, show=False)
-        st.pyplot(branding.darken(plt.gcf()), use_container_width=True)
+        st.pyplot(branding.style_fig(plt.gcf()), use_container_width=True)
         plt.close("all")
 
 # ================= TAB 2: how it works =================
@@ -211,7 +211,7 @@ with tab_how:
     )
     fig, ax = plt.subplots()
     shap.plots.beeswarm(ART["global_explanation"], max_display=12, show=False)
-    st.pyplot(branding.darken(plt.gcf()), use_container_width=True)
+    st.pyplot(branding.style_fig(plt.gcf()), use_container_width=True)
     plt.close("all")
 
     st.write("")
