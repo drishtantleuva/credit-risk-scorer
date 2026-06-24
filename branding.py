@@ -8,8 +8,8 @@ is the approve/decline decision itself.
 
 import streamlit as st
 
-INK = "#14223d"
-NAVY = "#1c3a5e"
+INK = "#16211c"
+NAVY = "#1e6f52"
 MUTED = "#5c6678"
 PAPER = "#f9f7f2"
 APPROVE = "#1f7a52"
@@ -18,7 +18,7 @@ LINE = "#ddd7c8"
 
 CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap');
 
 html, body, [class*="st-"], [data-testid="stMarkdownContainer"], input, button, select {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -27,7 +27,7 @@ html, body, [class*="st-"], [data-testid="stMarkdownContainer"], input, button, 
 
 h1, h2, h3 {
   font-family: 'Spectral', Georgia, serif !important;
-  color: #14223d !important;
+  color: #16211c !important;
   letter-spacing: -0.01em;
 }
 h1 { font-weight: 700 !important; font-size: 2.5rem !important; line-height: 1.1; }
@@ -43,7 +43,7 @@ h3 { font-weight: 600 !important; }
   box-shadow: 0 1px 2px rgba(20,34,61,0.05);
 }
 [data-testid="stMetricLabel"] { color: #5c6678 !important; }
-[data-testid="stMetricValue"] { color: #14223d !important; font-weight: 600; }
+[data-testid="stMetricValue"] { color: #16211c !important; font-weight: 600; }
 
 [data-testid="stSidebar"] {
   background: #f3f0e8;
@@ -54,16 +54,16 @@ h3 { font-weight: 600 !important; }
   border-radius: 6px;
   border: 1px solid #c9c2b1;
   background: #ffffff;
-  color: #1c3a5e;
+  color: #1e6f52;
   font-weight: 500;
 }
-.stButton button:hover { border-color: #1c3a5e; background: #f3f0e8; }
+.stButton button:hover { border-color: #1e6f52; background: #f3f0e8; }
 
 [data-testid="stTabs"] button[role="tab"] {
   font-weight: 600;
   color: #5c6678;
 }
-[data-testid="stTabs"] button[role="tab"][aria-selected="true"] { color: #1c3a5e; }
+[data-testid="stTabs"] button[role="tab"][aria-selected="true"] { color: #1e6f52; }
 [data-testid="stIconMaterial"] { font-family: 'Material Symbols Rounded' !important; }
 
 div[data-testid="stExpander"] {
@@ -75,11 +75,11 @@ div[data-testid="stExpander"] {
 /* an eyebrow / kicker above the masthead */
 .eyebrow {
   text-transform: uppercase; letter-spacing: 0.18em;
-  font-size: 0.72rem; color: #1c3a5e; font-weight: 600;
+  font-size: 0.72rem; color: #c8851f; font-weight: 600;
   margin-bottom: 2px;
 }
 /* a thin rule under the masthead, the way print sets a headline */
-.masthead-rule { height: 2px; background: #1c3a5e; width: 64px; margin: 6px 0 4px; }
+.masthead-rule { height: 2px; background: #1e6f52; width: 64px; margin: 6px 0 4px; }
 
 .dl-step {
   background: #ffffff;
@@ -88,11 +88,11 @@ div[data-testid="stExpander"] {
   padding: 18px;
   height: 100%;
 }
-.dl-step b { color: #1c3a5e; font-family: 'Spectral', serif; font-size: 1.02rem; }
+.dl-step b { color: #1e6f52; font-family: 'Spectral', serif; font-size: 1.02rem; }
 .dl-step .n {
   display: inline-block; width: 28px; height: 28px; line-height: 28px;
   text-align: center; border-radius: 50%;
-  border: 1.5px solid #1c3a5e; color: #1c3a5e;
+  border: 1.5px solid #1e6f52; color: #1e6f52;
   font-weight: 600; margin-bottom: 10px; font-size: 0.85rem;
   font-family: 'Spectral', serif;
 }
@@ -106,7 +106,7 @@ div[data-testid="stExpander"] {
 }
 .reason.neg { border-left-color: #b4232a; }
 .reason.pos { border-left-color: #1f7a52; }
-.reason.tip { border-left-color: #1c3a5e; }
+.reason.tip { border-left-color: #1e6f52; }
 
 /* decision — a stamped verdict, not a glowing pill */
 .pill {
@@ -118,7 +118,7 @@ div[data-testid="stExpander"] {
 .pill.no { background: #f6e7e7; color: #b4232a; border: 1px solid #b4232a; }
 
 table { font-size: 0.92rem; }
-a { color: #1c3a5e; }
+a { color: #1e6f52; }
 </style>
 """
 
@@ -172,7 +172,8 @@ def footer(repo: str):
     st.divider()
     st.markdown(
         f'<p style="color:#7a8090;font-size:0.85rem">Built by '
-        f'<a href="https://drishtantleuva.github.io" target="_blank"><b>Drishtant Leuva</b></a> '
+        f'<a href="https://drishtantleuva.github.io" target="_blank">'
+        f'<b style="font-family:\'Fraunces\',Georgia,serif">Drishtant Leuva</b></a> '
         f'— Data Scientist · Risk &amp; Explainable AI &nbsp;·&nbsp; '
         f'<a href="https://github.com/drishtantleuva/{repo}" target="_blank">Source on GitHub</a> '
         f'&nbsp;·&nbsp; <a href="https://www.linkedin.com/in/drishtant-leuva/" '
